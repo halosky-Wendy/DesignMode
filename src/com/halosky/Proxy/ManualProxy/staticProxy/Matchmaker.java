@@ -1,13 +1,10 @@
 package com.halosky.Proxy.ManualProxy.staticProxy;
 
-import java.lang.reflect.InvocationHandler;
+import com.halosky.Proxy.ManualProxy.halosky.HaloInvocationHandler;
+
 import java.lang.reflect.Method;
 
-/**
- * @Author YangHuan
- * @Date 2019/1/19 16:54
- **/
-public class Matchmaker implements InvocationHandler {
+public class Matchmaker implements HaloInvocationHandler {
 
     private Person target;
 

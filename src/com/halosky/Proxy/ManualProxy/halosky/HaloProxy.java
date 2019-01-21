@@ -25,16 +25,12 @@ public class HaloProxy {
      */
     public static Object newProxyInstance(HaloClassLoader loader, Class<?>[] interfaces,HaloInvocationHandler h)
             throws IllegalArgumentException {
-        /**
-         * 1. 生产代码
-         * 2.将生成的源代码输出到磁盘，保存为java文件
-         */
         try{
             //1. 生产代码
             String proxyClass = generateCode(interfaces);
 
             //2.将生成的源代码输出到磁盘，保存为java文件
-            String path = HaloProxy.class.getResource("").getPath();    //当前HaloProxy所在的磁盘路径，name参数不填则返回当前类所在的路径下，name 某个路径下 D:/a/b/c  name指定为b 就返回 /D:/a/b
+            String path = HaloProxy.class.getResource("").getPath();
             File f = new File(path+"$haloProxy.java");
             FileWriter fileWriter = new FileWriter(f);
             fileWriter.write(proxyClass);
@@ -42,20 +38,23 @@ public class HaloProxy {
             fileWriter.close();
 
             // 3.编译源代码,并且生成class文件
-            JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();        // 创建一个编译器
-            StandardJavaFileManager standardFileManager = compiler.getStandardFileManager(null, null, null);
+            JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();                               // 创建一个编译器
+            // 获取一个文件管理器
+            StandardJavaFileManager standardFileManager = compiler.getStandardFileManager(null, null, null);        // 获取一个文件管理器
             Iterable iterable = standardFileManager.getJavaFileObjects(f);
-
+            // CompilationTask代表编译任务
             CompilationTask  task = compiler.getTask(null,standardFileManager,null,null,null,iterable);
             task.call();                // 编译
             standardFileManager.close();
 
             /**
              * 4.将class文件中的内容，动态加载到JVM中来
-             * 5.返回被代理后的代理对象
+             *
              */
             loader.setClassFile(path);
             Class haloProxyClass = loader.findClass("$haloProxy");
+
+            //5.返回被代理后的代理对象
             Constructor c = haloProxyClass.getConstructor(HaloInvocationHandler.class);
 
             return c.newInstance(h);
@@ -75,12 +74,12 @@ public class HaloProxy {
      */
     public static String generateCode( Class<?>[] interfaces){
         String ln = "\r\n";
-        String proxyClassName = "$haloProxy";
+        String proxyClassName = "$haloProxy";                                           // 我们生成类的类名
         StringBuilder sb = new StringBuilder();
         sb.append("package ");
-        sb.append(HaloProxy.class.getPackage().getName()).append(";").append(ln);
-        sb.append("import ").append(Method.class.getName()).append(";").append(ln);
-        sb.append("public class ").append(proxyClassName).append(" implements ");
+        sb.append(HaloProxy.class.getPackage().getName()).append(";").append(ln);       // 包名
+        sb.append("import ").append(Method.class.getName()).append(";").append(ln);    // 我们代理类中需要使用到Method，所以需要导入包
+        sb.append("public class ").append(proxyClassName).append(" implements ");    //  实现的接口，这里我们传的是一个数组(Class<?>[] interfaces)
         for(int index = 0;index < interfaces.length;index++){
             sb.append(interfaces[index].getName());
             if(index != interfaces.length -1){
@@ -88,13 +87,13 @@ public class HaloProxy {
             }
         }
         sb.append("{").append(ln);
-        sb.append(HaloInvocationHandler.class.getName()).append(" h;").append(ln);
+        sb.append(HaloInvocationHandler.class.getName()).append(" h;").append(ln);     //  这里就是我们的InvocationHandler，作为成员变量写出来
         sb.append("public ").append(proxyClassName).append("(").append(HaloInvocationHandler.class.getName()).append(" h")
                 .append("){").append(ln);
         sb.append("this.h = h;").append(ln);
-        sb.append("}").append(ln);
+        sb.append("}").append(ln);                                                      // 构造函数，需要传入InvocationHandler
 
-       for(Class<?> clazz : interfaces){
+       for(Class<?> clazz : interfaces){                                                // 迭代接口中的方法
            for(Method m : clazz.getMethods()){
                 sb.append("public ").append(m.getReturnType().getName()).append(" ").
                         append(m.getName()).append(" (){").append(ln);
