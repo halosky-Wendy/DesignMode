@@ -1,6 +1,7 @@
 package com.halosky.java8;
 
 import com.halosky.java8.entity.Product;
+import com.halosky.java8.entity.StoppingProduct;
 import com.halosky.java8.interfaces.IFunction;
 
 /**
@@ -19,9 +20,13 @@ public class Test {
 
         IFunction iFunction = product::getProductName;
 
-        String productName = iFunction.convert();
-        System.out.println(productName);
+        StoppingProduct stoppingProduct = new StoppingProduct();
+
+        stoppingProduct.test(iFunction);
+
     }
+
+
 
 
 }
